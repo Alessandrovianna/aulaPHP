@@ -7,6 +7,31 @@ class Usuario {
     private $senha;
     private $nome;
 
+    private $pdo;
+
+    public function __construct($i = null) {
+        try {
+            $this->pdo = new PDO("mysql:dbname=controle_usuarios;host=localhost", "root", "P63H65P");
+
+        }catch(PDOExcption $e) {
+            echo "FALHOU: ".$e->getMessage();
+        }
+
+        if(!empty($i)) {
+            $sql = "SELECT * FROM usuario3 WHERE id = ?";
+            $sql = $this->pdo->prepare($sql);
+            $sql->execute(array($i));
+
+            if($sql->rowCount() > 0) {
+                $data = $sql->fetch();
+                $this->id = $data['id'];
+                $this->email = $data['email'];
+                $this->senha = $data['senha'];
+                $this->nome = $data['nome'];
+            }
+        }
+    }
+
     public function getId() {
         return $this->id;
     }
@@ -20,7 +45,7 @@ class Usuario {
     }
 
     public function setSenha($s) {
-        $this->senha = $s;
+        $this->senha = md5($s);
     }
 
     public function setNome ($n) {
@@ -29,6 +54,23 @@ class Usuario {
 
     public function getNome() {
         return $this->nome;
+    }
+    public function salvar() {
+        if(!empty($this->id)) {
+            $sql = "UPDATE usuario3 SET email = ?, senha = ?, nome = ? WHERE id = ?";
+            $sql = $this->pdo->prepare($sql);
+            $sql->execute(array($this->email, $this->senha, $this->nome, $this->id));
+
+        } else {
+            $sql = "INSERT INTO usuario3 SET email = ?, senha = ?, nome = ?";
+            $sql = $this->pdo->prepare($sql);
+            $sql->execute(array($this->email, $this->senha, $this->nome));
+        }
+    }
+    public function delete() {
+        $sql = "DELETE FROM usuario3 WHERE id = ?";
+        $sql = $this->pdo->prepare($sql);
+        $sql->execute(array($this->id));
     }
 
 }
